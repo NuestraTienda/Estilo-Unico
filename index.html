@@ -262,11 +262,14 @@ $("#menu").innerHTML = `<a href="https://instagram.com/${esc(CONFIG.instagram)}"
 esqueleto(); setTimeout(render, 600);
 if (ls.get("legal", false)) cookies(); else abrirLegal();
 </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></scri
-    <script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
 (function () {
   const hero = document.getElementById("hero"), vel = document.getElementById("vel");
   const fin = () => hero.classList.add("fin");
+  addEventListener("error", fin);
+  let wdt = 0; const wd = setInterval(() => { if (!document.body.classList.contains("lock") && ++wdt > 20) { clearInterval(wd); fin() } }, 1000);
   if (!window.THREE || matchMedia("(prefers-reduced-motion:reduce)").matches) return fin();
   let R; try { R = new THREE.WebGLRenderer({ antialias: true, alpha: true }) } catch (e) { return fin() }
   R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.shadowMap.enabled = true; R.outputEncoding = THREE.sRGBEncoding;
@@ -417,7 +420,6 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
   }
   requestAnimationFrame(loop);
 })();
-</script>
 </script>
 </body>
 </html>
