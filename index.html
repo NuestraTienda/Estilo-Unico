@@ -270,6 +270,7 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
   if (!window.THREE || matchMedia("(prefers-reduced-motion:reduce)").matches) return fin();
   let R; try { R = new THREE.WebGLRenderer({ antialias: true, alpha: true }) } catch (e) { return fin() }
   R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.shadowMap.enabled = true; R.outputEncoding = THREE.sRGBEncoding;
+  R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.15;
   R.domElement.id = "c3d"; hero.prepend(R.domElement);
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(38, 1, .1, 100);
   let dS = 10, dE = 2.4;
@@ -281,15 +282,14 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
   };
   new ResizeObserver(rs).observe(hero); rs();
 
-  // Luces y piso (solo recibe la sombra)
   sc.add(new THREE.HemisphereLight(0xbfc4d6, 0x050505, 1.1));
   const key = new THREE.DirectionalLight(0xfff1de, 3); key.position.set(-4, 10, 6); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 30 }); key.shadow.bias = -.0005; sc.add(key);
-  const rim = new THREE.DirectionalLight(0x9fb4ff, 1.5); rim.position.set(5, 4, -6); sc.add(rim);
+  const rim = new THREE.DirectionalLight(0x9fb4ff, 1.6); rim.position.set(5, 4, -6); sc.add(rim);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: .6 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; sc.add(floor);
 
-  // Texturas de tela: trama + estampado
+  // ---- Texturas: tejido, estampado y costuras ----
   const TW = 1600, TH = 1760, k4 = 4;
   const POLY = [[140,48],[110,62],[78,76],[52,92],[20,170],[44,184],[68,192],[92,150],[94,240],[96,402],[200,410],[304,402],[306,240],[308,150],[332,192],[356,184],[380,170],[348,92],[322,76],[290,62],[260,48],[248,72],[200,84],[152,72]];
   const cv = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c };
@@ -297,8 +297,11 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
   const hb = (i, j) => ((i >> 1) ^ (j >> 1)) & 1;
   const mc = cv(TW, TH), x = mc.getContext("2d");
   x.save(); x.beginPath(); POLY.forEach(([a, b], i) => x[i ? "lineTo" : "moveTo"](a * k4, b * k4)); x.closePath(); x.clip();
-  x.fillStyle = x.createPattern(tile((i, j) => 46 + hb(i, j) * 14 + Math.random() * 12), "repeat"); x.fillRect(0, 0, TW, TH); x.restore();
-  x.fillStyle = "rgba(232,227,214,.85)"; x.font = "600 62px Didot,'Bodoni MT',Georgia,serif"; x.textBaseline = "middle";
+  x.fillStyle = x.createPattern(tile((i, j) => 50 + hb(i, j) * 14 + Math.random() * 12), "repeat"); x.fillRect(0, 0, TW, TH);
+  x.setLineDash([14, 10]); x.strokeStyle = "rgba(215,210,198,.3)"; x.lineWidth = 3;
+  [[[98,392],[200,399],[302,392]],[[26,164],[48,177],[70,186]],[[374,164],[352,177],[330,186]]].forEach(l => { x.beginPath(); l.forEach(([a, b], i) => x[i ? "lineTo" : "moveTo"](a * k4, b * k4)); x.stroke() });
+  x.restore(); x.setLineDash([]);
+  x.fillStyle = "rgba(232,227,214,.86)"; x.font = "600 62px Didot,'Bodoni MT',Georgia,serif"; x.textBaseline = "middle";
   const txt = [..."ESTILOÚNICO"]; let tw = 0; txt.forEach(c => tw += x.measureText(c).width + 14);
   let px = 800 - tw / 2 + 7; txt.forEach(c => { x.fillText(c, px, 688); px += x.measureText(c).width + 14 });
   x.fillStyle = "rgba(50,50,54,.55)"; for (let i = 0; i < 1800; i++) x.fillRect(515 + Math.random() * 570, 640 + Math.random() * 100, 1 + Math.random() * 3, 1 + Math.random() * 2);
@@ -306,47 +309,83 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
   const amc = cv(512, 563), ax = amc.getContext("2d"); ax.fillStyle = "#000"; ax.fillRect(0, 0, 512, 563); ax.fillStyle = "#fff"; ax.beginPath(); POLY.forEach(([a, b], i) => ax[i ? "lineTo" : "moveTo"](a * 1.28, b * 1.28)); ax.fill();
   const an = Math.min(8, R.capabilities.getMaxAnisotropy());
   const map = new THREE.CanvasTexture(mc); map.encoding = THREE.sRGBEncoding; map.anisotropy = an;
-  const bump = new THREE.CanvasTexture(bc); bump.anisotropy = an;
-  const mFront = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: .6, roughness: .92, alphaTest: .5, shadowSide: THREE.DoubleSide });
-  const mBack = new THREE.MeshStandardMaterial({ color: 0x2a2a2f, bumpMap: bump, bumpScale: .6, roughness: .95, alphaMap: new THREE.CanvasTexture(amc), alphaTest: .5, side: THREE.BackSide });
+  const bump = new THREE.CanvasTexture(bc); bump.anisotropy = an, am = new THREE.CanvasTexture(amc);
 
-  // Tela: malla con forma de remera
-  const NX = 44, NY = 48, W = NX + 1, s = 5 / 400, cw = 400 / NX, ch = 440 / NY, DT = 1 / 60, G = 12, KD = 3.5;
+  // ---- Prenda: dos paneles (frente y espalda) cosidos por los costados ----
+  const NX = 36, NY = 40, W = NX + 1, s = 5 / 400, cw = 400 / NX, ch = 440 / NY, DT = 1 / 60, G = 12, KD = 3.5;
+  const sm = (a, b, v) => { v = Math.min(1, Math.max(0, (v - a) / (b - a))); return v * v * (3 - 2 * v) };
+  const dSeg = (x, y, [ax, ay], [bx, by]) => { const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(x - ax - t * dx, y - ay - t * dy) };
+  const dPoly = (x, y, pl, cl) => { let m = 1e9; for (let i = 0; i < pl.length - (cl ? 0 : 1); i++) m = Math.min(m, dSeg(x, y, pl[i], pl[(i + 1) % pl.length])); return m };
+  const OPEN = [[[140,48],[152,72],[200,84],[248,72],[260,48]], [[96,402],[200,410],[304,402]], [[20,170],[44,184],[68,192]], [[332,192],[356,184],[380,170]]];
+  const dOpen = (x, y) => Math.min(...OPEN.map(o => dPoly(x, y, o, false)));
   const inside = (a, b) => { let c = false; for (let i = 0, j = POLY.length - 1; i < POLY.length; j = i++) { const [p, q] = POLY[i], [e, f] = POLY[j]; if ((q > b) !== (f > b) && a < (e - p) * (b - q) / (f - q) + p) c = !c } return c };
   const ID = new Int32Array(W * (NY + 1)).fill(-1), cells = [];
   for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) if ([[i + .5, j + .5], [i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]].some(([a, b]) => inside(a * cw, b * ch))) cells.push([i, j]);
   let n = 0; const GI = [], GJ = [];
   cells.forEach(([i, j]) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]].forEach(([a, b]) => { if (ID[b * W + a] < 0) { ID[b * W + a] = n++; GI.push(a); GJ.push(b) } }));
-  const P = new Float32Array(n * 3), Q = new Float32Array(n * 3), NP = new Float32Array(n * 3);
+  const N2 = n * 2, P = new Float32Array(N2 * 3), Q = new Float32Array(N2 * 3), NP = new Float32Array(N2 * 3), hk = new Float32Array(n), SE = new Uint8Array(n);
   const m4 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(-.35, .3, .12)), v3 = new THREE.Vector3();
   for (let k = 0; k < n; k++) {
-    v3.set((GI[k] * cw - 200) * s, 0, (GJ[k] * ch - 220) * s).applyMatrix4(m4);
-    const o = k * 3; P[o] = v3.x; P[o + 1] = v3.y + 9; P[o + 2] = v3.z - 3;
-    Q[o] = P[o]; Q[o + 1] = P[o + 1] + 2 * DT; Q[o + 2] = P[o + 2] - 1.6 * DT;
+    const x1 = GI[k] * cw, y1 = GJ[k] * ch, din = inside(x1, y1) ? dPoly(x1, y1, POLY, true) : 0;
+    hk[k] = .05 + .3 * sm(0, 55, din); SE[k] = din < cw * 1.4 && dOpen(x1, y1) > cw * 2.4 ? 1 : 0;
+    for (let L = 0; L < 2; L++) {
+      v3.set((x1 - 200) * s, (L ? -1 : 1) * hk[k], (y1 - 220) * s).applyMatrix4(m4);
+      const o = (k + L * n) * 3; P[o] = v3.x; P[o + 1] = v3.y + 9; P[o + 2] = v3.z - 3;
+      Q[o] = P[o]; Q[o + 1] = P[o + 1] + 2 * DT; Q[o + 2] = P[o + 2] - 1.6 * DT;
+    }
   }
   const CA = [], CB = [], CL = [], CK = [];
-  const link = (i, j, a, b, k) => { if (a > NX || b > NY || b < 0) return; const p = ID[j * W + i], q = ID[b * W + a]; if (p < 0 || q < 0) return; CA.push(p); CB.push(q); CL.push(Math.hypot((a - i) * cw, (b - j) * ch) * s); CK.push(k) };
+  const link = (i, j, a, b, k) => { if (a > NX || b > NY || b < 0) return; const p = ID[j * W + i], q = ID[b * W + a]; if (p < 0 || q < 0) return; const l = Math.hypot((a - i) * cw, (b - j) * ch) * s; for (let L = 0; L < 2; L++) { CA.push(p + L * n); CB.push(q + L * n); CL.push(l); CK.push(k) } };
   for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) {
     if (ID[j * W + i] < 0) continue;
     link(i, j, i + 1, j, .5); link(i, j, i, j + 1, .5); link(i, j, i + 1, j + 1, .4); if (j > 0) link(i, j, i + 1, j - 1, .4); link(i, j, i + 2, j, .12); link(i, j, i, j + 2, .12);
   }
+  for (let k = 0; k < n; k++) if (SE[k]) { CA.push(k); CB.push(k + n); CL.push(.03); CK.push(.5) }
   const nb = (i, j, k) => (i < 0 || j < 0 || i > NX || j > NY || ID[j * W + i] < 0) ? k : ID[j * W + i];
 
-  const geo = new THREE.BufferGeometry(), pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), idx = [];
+  const uv = new Float32Array(n * 2), idx = [], idr = [];
   for (let k = 0; k < n; k++) { uv[k * 2] = GI[k] / NX; uv[k * 2 + 1] = 1 - GJ[k] / NY }
-  cells.forEach(([i, j]) => { const a = ID[j * W + i], b = ID[j * W + i + 1], c = ID[(j + 1) * W + i], d = ID[(j + 1) * W + i + 1]; idx.push(a, c, b, b, c, d) });
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3)); geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); geo.setIndex(idx);
-  const front = new THREE.Mesh(geo, mFront), back = new THREE.Mesh(geo, mBack);
-  front.castShadow = true; front.frustumCulled = back.frustumCulled = false; sc.add(front, back);
+  cells.forEach(([i, j]) => { const a = ID[j * W + i], b = ID[j * W + i + 1], c = ID[(j + 1) * W + i], d = ID[(j + 1) * W + i + 1]; idx.push(a, c, b, b, c, d); idr.push(a, b, c, b, d, c) });
+  const mk = r => { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.setIndex(r ? idr : idx); return g };
+  const gF = mk(0), gB = mk(1);
+  const mOut = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: .6, roughness: .92, alphaTest: .5, shadowSide: THREE.DoubleSide });
+  const mIn = new THREE.MeshStandardMaterial({ color: 0x1d1d21, bumpMap: bump, bumpScale: .5, roughness: 1, alphaMap: am, alphaTest: .5, side: THREE.BackSide });
+  const mBk = new THREE.MeshStandardMaterial({ color: 0x2c2c31, bumpMap: bump, bumpScale: .6, roughness: .95, alphaMap: am, alphaTest: .5, side: THREE.DoubleSide, shadowSide: THREE.DoubleSide });
+  const fo = new THREE.Mesh(gF, mOut), fi = new THREE.Mesh(gF, mIn), bk = new THREE.Mesh(gB, mBk);
+  [fo, fi, bk].forEach(o => { o.frustumCulled = false; sc.add(o) }); fo.castShadow = bk.castShadow = true;
 
+  // ---- Ribete del cuello (con grosor) ----
+  const NK = [];
+  for (let q = 0; q <= 12; q++) {
+    const ft = q / 12 * 4, a = Math.min(3, Math.floor(ft)), pa = OPEN[0][a], pb = OPEN[0][a + 1], u = ft - a, cx = pa[0] + (pb[0] - pa[0]) * u, cy = pa[1] + (pb[1] - pa[1]) * u;
+    let best = 0, bd = 1e9; for (let k = 0; k < n; k++) { const dd = Math.hypot(GI[k] * cw - cx, GJ[k] * ch - cy); if (dd < bd) { bd = dd; best = k } }
+    if (NK[NK.length - 1] !== best) NK.push(best);
+  }
+  const m = NK.length, cp = new Float32Array(m * 21), ci = [];
+  for (let i = 0; i < m - 1; i++) for (let r = 0; r < 7; r++) { const a = i * 7 + r, b = i * 7 + (r + 1) % 7, c = (i + 1) * 7 + r, d = (i + 1) * 7 + (r + 1) % 7; ci.push(a, c, b, b, c, d) }
+  const gC = new THREE.BufferGeometry(); gC.setAttribute("position", new THREE.BufferAttribute(cp, 3)); gC.setIndex(ci);
+  const collar = new THREE.Mesh(gC, new THREE.MeshStandardMaterial({ color: 0x141417, roughness: 1, side: THREE.DoubleSide }));
+  collar.frustumCulled = false; collar.castShadow = true; sc.add(collar);
+  const cc = NK.map(() => new THREE.Vector3()), uu = new THREE.Vector3(), tt = new THREE.Vector3(), vv = new THREE.Vector3();
+  function updCollar() {
+    NK.forEach((k, i) => { const a = k * 3, b = (k + n) * 3; cc[i].set((P[a] + P[b]) / 2, (P[a + 1] + P[b + 1]) / 2, (P[a + 2] + P[b + 2]) / 2) });
+    NK.forEach((k, i) => {
+      const a = k * 3, b = (k + n) * 3;
+      tt.subVectors(cc[Math.min(m - 1, i + 1)], cc[Math.max(0, i - 1)]).normalize();
+      uu.set(P[a] - P[b], P[a + 1] - P[b + 1], P[a + 2] - P[b + 2]); uu.addScaledVector(tt, -uu.dot(tt)).normalize(); vv.crossVectors(tt, uu);
+      for (let r = 0; r < 7; r++) { const g = r / 7 * 6.2832, o = (i * 7 + r) * 3, c1 = Math.cos(g) * .075, s1 = Math.sin(g) * .075; cp[o] = cc[i].x + uu.x * c1 + vv.x * s1; cp[o + 1] = cc[i].y + uu.y * c1 + vv.y * s1; cp[o + 2] = cc[i].z + uu.z * c1 + vv.z * s1 }
+    });
+    gC.attributes.position.needsUpdate = true; gC.computeVertexNormals();
+  }
+
+  // ---- Física ----
   let t = 0, tl = 0;
   function step() {
-    let sp = 0;
-    const damp = tl ? .86 : .997;
-    for (let k = 0; k < n; k++) {
-      const o = k * 3, x0 = P[o], y0 = P[o + 1], z0 = P[o + 2], i = GI[k], j = GJ[k];
+    let sp = 0; const damp = tl ? .86 : .997;
+    for (let k = 0; k < N2; k++) {
+      const L = k >= n ? n : 0, kk = k - L, i = GI[kk], j = GJ[kk], o = k * 3, x0 = P[o], y0 = P[o + 1], z0 = P[o + 2];
       const vx = (x0 - Q[o]) / DT, vy = (y0 - Q[o + 1]) / DT, vz = (z0 - Q[o + 2]) / DT; sp += Math.hypot(vx, vy, vz);
-      const r = nb(i + 1, j, k) * 3, l = nb(i - 1, j, k) * 3, d = nb(i, j + 1, k) * 3, u = nb(i, j - 1, k) * 3;
+      const r = (nb(i + 1, j, kk) + L) * 3, l = (nb(i - 1, j, kk) + L) * 3, d = (nb(i, j + 1, kk) + L) * 3, u = (nb(i, j - 1, kk) + L) * 3;
       const tx = P[r] - P[l], ty = P[r + 1] - P[l + 1], tz = P[r + 2] - P[l + 2], ux = P[d] - P[u], uy = P[d + 1] - P[u + 1], uz = P[d + 2] - P[u + 2];
       let nx = ty * uz - tz * uy, ny = tz * ux - tx * uz, nz = tx * uy - ty * ux; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
       const vn = vx * nx + vy * ny + vz * nz;
@@ -355,19 +394,26 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
       NP[o + 2] = z0 + (z0 - Q[o + 2]) * damp + (-KD * vn * nz) * DT * DT;
     }
     Q.set(P); P.set(NP);
-    for (let it = 0; it < 12; it++) {
+    const air = 1 - .8 * sm(1.2, 3.6, t);   // el aire se va escapando y la prenda se aplana
+    for (let it = 0; it < 10; it++) {
       for (let c = 0; c < CA.length; c++) {
         const a = CA[c] * 3, b = CB[c] * 3, dx = P[b] - P[a], dy = P[b + 1] - P[a + 1], dz = P[b + 2] - P[a + 2];
-        const L = Math.hypot(dx, dy, dz) || 1e-6, f = (L - CL[c]) / L * CK[c];
+        const Lg = Math.hypot(dx, dy, dz) || 1e-6, f = (Lg - CL[c]) / Lg * CK[c];
         P[a] += dx * f; P[a + 1] += dy * f; P[a + 2] += dz * f; P[b] -= dx * f; P[b + 1] -= dy * f; P[b + 2] -= dz * f;
       }
-      for (let k = 0; k < n; k++) if (P[k * 3 + 1] < .02) P[k * 3 + 1] = .02;
+      for (let k = 0; k < n; k++) {   // frente y espalda no se pueden juntar: da volumen
+        if (SE[k]) continue;
+        const a = k * 3, b = (k + n) * 3, dx = P[b] - P[a], dy = P[b + 1] - P[a + 1], dz = P[b + 2] - P[a + 2];
+        const Lg = Math.hypot(dx, dy, dz) || 1e-6, want = Math.max(.07, 2 * hk[k] * air);
+        if (Lg < want) { const f = (Lg - want) / Lg * .5; P[a] += dx * f; P[a + 1] += dy * f; P[a + 2] += dz * f; P[b] -= dx * f; P[b + 1] -= dy * f; P[b + 2] -= dz * f }
+      }
+      for (let k = 0; k < N2; k++) if (P[k * 3 + 1] < .02) P[k * 3 + 1] = .02;
     }
-    for (let k = 0; k < n; k++) { const o = k * 3; if (P[o + 1] < .03) { Q[o] = P[o] - (P[o] - Q[o]) * .55; Q[o + 2] = P[o + 2] - (P[o + 2] - Q[o + 2]) * .55; Q[o + 1] = P[o + 1] } }
-    return sp / n;
+    for (let k = 0; k < N2; k++) { const o = k * 3; if (P[o + 1] < .03) { Q[o] = P[o] - (P[o] - Q[o]) * .55; Q[o + 2] = P[o + 2] - (P[o + 2] - Q[o + 2]) * .55; Q[o + 1] = P[o + 1] } }
+    return sp / N2;
   }
 
-  const sm = (a, b, v) => { v = Math.min(1, Math.max(0, (v - a) / (b - a))); return v * v * (3 - 2 * v) };
+  // ---- Cámara: se acerca al estampado y funde a negro ----
   const chest = ID[Math.round(172 / 440 * NY) * W + NX / 2], d0 = new THREE.Vector3(0, .82, .57).normalize(), d1 = new THREE.Vector3(0, .96, .28).normalize();
   const tg0 = new THREE.Vector3(0, 0, .3), tg1 = new THREE.Vector3(), p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
   let acc = 0, last = performance.now();
@@ -377,8 +423,9 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
     if (!hero.offsetParent) { last = now; return }
     acc += Math.min(.05, (now - last) / 1000); last = now;
     let c = 0, sp = 1;
-    while (acc >= DT && c++ < 3) { sp = step(); acc -= DT; t += DT; if (!tl && ((t > 1.5 && sp < .2) || t > 4)) tl = t }
-    pos.set(P); geo.attributes.position.needsUpdate = true; geo.computeVertexNormals();
+    while (acc >= DT && c++ < 2) { sp = step(); acc -= DT; t += DT; if (!tl && ((t > 1.5 && sp < .2) || t > 4)) tl = t }
+    gF.attributes.position.array.set(P.subarray(0, n * 3)); gB.attributes.position.array.set(P.subarray(n * 3));
+    gF.attributes.position.needsUpdate = gB.attributes.position.needsUpdate = true; gF.computeVertexNormals(); gB.computeVertexNormals(); updCollar();
     tg1.set(P[chest * 3], P[chest * 3 + 1], P[chest * 3 + 2]);
     const e = tl ? sm(0, 1, (t - tl - .4) / 1.8) : 0;
     p0.copy(tg0).addScaledVector(d0, dS); p1.copy(tg1).addScaledVector(d1, dE);
@@ -389,6 +436,7 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
   }
   requestAnimationFrame(loop);
 })();
+</script>
 </script>
 </body>
 </html>
