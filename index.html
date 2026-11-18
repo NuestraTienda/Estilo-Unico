@@ -250,3 +250,15 @@
 </body>
 </html>   
 
+let categorias = [], productos = [];
+// Si la ruta empieza con "/", la hace relativa (así anda en GitHub Pages)
+const img = s => (s && s.startsWith("/") && !s.startsWith("//")) ? s.slice(1) : s;
+
+Promise.all([
+  fetch("categorias.json").then(r => r.json()),
+  fetch("productos.json").then(r => r.json())
+]).then(([c, p]) => { categorias = c; productos = p; render(); })
+  .catch(() => {
+    document.getElementById("contenido").innerHTML =
+      "<p class='sin-resultados'>No se pudieron cargar las prendas 😕</p>";
+  });
