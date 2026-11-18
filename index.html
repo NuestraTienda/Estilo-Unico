@@ -262,176 +262,157 @@ $("#menu").innerHTML = `<a href="https://instagram.com/${esc(CONFIG.instagram)}"
 esqueleto(); setTimeout(render, 600);
 if (ls.get("legal", false)) cookies(); else abrirLegal();
 </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></scri
+    <script>
 (function () {
   const hero = document.getElementById("hero"), vel = document.getElementById("vel");
   const fin = () => hero.classList.add("fin");
   if (!window.THREE || matchMedia("(prefers-reduced-motion:reduce)").matches) return fin();
   let R; try { R = new THREE.WebGLRenderer({ antialias: true, alpha: true }) } catch (e) { return fin() }
   R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.shadowMap.enabled = true; R.outputEncoding = THREE.sRGBEncoding;
-  R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.15;
+  R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.2;
   R.domElement.id = "c3d"; hero.prepend(R.domElement);
   const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(38, 1, .1, 100);
-  let dS = 10, dE = 2.4;
+  let dS = 12, dE = 2;
   const rs = () => {
     const w = hero.clientWidth, h = hero.clientHeight; if (!w) return;
     R.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix();
     const th = 2 * Math.tan(cam.fov * Math.PI / 360);
-    dS = Math.max(10, 6.2 / (th * cam.aspect)); dE = Math.max(2.4, 2.2 / (th * cam.aspect));
+    dS = Math.max(8.2 / th, 6 / (th * cam.aspect)); dE = Math.max(1.3 / th, 1.7 / (th * cam.aspect));
   };
   new ResizeObserver(rs).observe(hero); rs();
 
-  sc.add(new THREE.HemisphereLight(0xbfc4d6, 0x050505, 1.1));
-  const key = new THREE.DirectionalLight(0xfff1de, 3); key.position.set(-4, 10, 6); key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 30 }); key.shadow.bias = -.0005; sc.add(key);
-  const rim = new THREE.DirectionalLight(0x9fb4ff, 1.6); rim.position.set(5, 4, -6); sc.add(rim);
+  // Luces y piso (el piso solo recibe la sombra)
+  sc.add(new THREE.HemisphereLight(0xbfc4d6, 0x0a0a0a, 1.2));
+  const key = new THREE.DirectionalLight(0xfff1de, 3.2); key.position.set(-4, 10, 6); key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024); Object.assign(key.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 30 }); key.shadow.bias = -.0005; sc.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb4ff, 1.8); rim.position.set(5, 4, -6); sc.add(rim);
+  const fill = new THREE.DirectionalLight(0xffffff, .6); fill.position.set(0, 3, 10); sc.add(fill);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: .6 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; sc.add(floor);
 
-  // ---- Texturas: tejido, estampado y costuras ----
-  const TW = 1600, TH = 1760, k4 = 4;
+  // ---------- Silueta de la remera (frente y espalda; la espalda tiene el cuello más alto) ----------
   const POLY = [[140,48],[110,62],[78,76],[52,92],[20,170],[44,184],[68,192],[92,150],[94,240],[96,402],[200,410],[304,402],[306,240],[308,150],[332,192],[356,184],[380,170],[348,92],[322,76],[290,62],[260,48],[248,72],[200,84],[152,72]];
-  const cv = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c };
-  const tile = fn => { const c = cv(64, 64), x = c.getContext("2d"), d = x.createImageData(64, 64); for (let j = 0; j < 64; j++) for (let i = 0; i < 64; i++) { const o = (j * 64 + i) * 4; d.data[o] = d.data[o+1] = d.data[o+2] = Math.max(0, Math.min(255, fn(i, j))); d.data[o+3] = 255 } x.putImageData(d, 0, 0); return c };
-  const hb = (i, j) => ((i >> 1) ^ (j >> 1)) & 1;
-  const mc = cv(TW, TH), x = mc.getContext("2d");
-  x.save(); x.beginPath(); POLY.forEach(([a, b], i) => x[i ? "lineTo" : "moveTo"](a * k4, b * k4)); x.closePath(); x.clip();
-  x.fillStyle = x.createPattern(tile((i, j) => 50 + hb(i, j) * 14 + Math.random() * 12), "repeat"); x.fillRect(0, 0, TW, TH);
-  x.setLineDash([14, 10]); x.strokeStyle = "rgba(215,210,198,.3)"; x.lineWidth = 3;
-  [[[98,392],[200,399],[302,392]],[[26,164],[48,177],[70,186]],[[374,164],[352,177],[330,186]]].forEach(l => { x.beginPath(); l.forEach(([a, b], i) => x[i ? "lineTo" : "moveTo"](a * k4, b * k4)); x.stroke() });
-  x.restore(); x.setLineDash([]);
-  x.fillStyle = "rgba(232,227,214,.86)"; x.font = "600 62px Didot,'Bodoni MT',Georgia,serif"; x.textBaseline = "middle";
-  const txt = [..."ESTILOÚNICO"]; let tw = 0; txt.forEach(c => tw += x.measureText(c).width + 14);
-  let px = 800 - tw / 2 + 7; txt.forEach(c => { x.fillText(c, px, 688); px += x.measureText(c).width + 14 });
-  x.fillStyle = "rgba(50,50,54,.55)"; for (let i = 0; i < 1800; i++) x.fillRect(515 + Math.random() * 570, 640 + Math.random() * 100, 1 + Math.random() * 3, 1 + Math.random() * 2);
-  const bc = cv(TW, TH), bx = bc.getContext("2d"); bx.fillStyle = bx.createPattern(tile((i, j) => 90 + hb(i, j) * 70 + Math.random() * 40), "repeat"); bx.fillRect(0, 0, TW, TH);
-  const amc = cv(512, 563), ax = amc.getContext("2d"); ax.fillStyle = "#000"; ax.fillRect(0, 0, 512, 563); ax.fillStyle = "#fff"; ax.beginPath(); POLY.forEach(([a, b], i) => ax[i ? "lineTo" : "moveTo"](a * 1.28, b * 1.28)); ax.fill();
-  const an = Math.min(8, R.capabilities.getMaxAnisotropy());
-  const map = new THREE.CanvasTexture(mc); map.encoding = THREE.sRGBEncoding; map.anisotropy = an;
-  const bump = new THREE.CanvasTexture(bc); bump.anisotropy = an, am = new THREE.CanvasTexture(amc);
-
-  // ---- Prenda: dos paneles (frente y espalda) cosidos por los costados ----
-  const NX = 36, NY = 40, W = NX + 1, s = 5 / 400, cw = 400 / NX, ch = 440 / NY, DT = 1 / 60, G = 12, KD = 3.5;
+  const PB = POLY.slice(0, 21).concat([[248,56],[200,62],[152,56]]);
   const sm = (a, b, v) => { v = Math.min(1, Math.max(0, (v - a) / (b - a))); return v * v * (3 - 2 * v) };
+  const ins = (a, b, pl) => { let c = false; for (let i = 0, j = pl.length - 1; i < pl.length; j = i++) { const [p, q] = pl[i], [e, f] = pl[j]; if ((q > b) !== (f > b) && a < (e - p) * (b - q) / (f - q) + p) c = !c } return c };
   const dSeg = (x, y, [ax, ay], [bx, by]) => { const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(x - ax - t * dx, y - ay - t * dy) };
-  const dPoly = (x, y, pl, cl) => { let m = 1e9; for (let i = 0; i < pl.length - (cl ? 0 : 1); i++) m = Math.min(m, dSeg(x, y, pl[i], pl[(i + 1) % pl.length])); return m };
-  const OPEN = [[[140,48],[152,72],[200,84],[248,72],[260,48]], [[96,402],[200,410],[304,402]], [[20,170],[44,184],[68,192]], [[332,192],[356,184],[380,170]]];
-  const dOpen = (x, y) => Math.min(...OPEN.map(o => dPoly(x, y, o, false)));
-  const inside = (a, b) => { let c = false; for (let i = 0, j = POLY.length - 1; i < POLY.length; j = i++) { const [p, q] = POLY[i], [e, f] = POLY[j]; if ((q > b) !== (f > b) && a < (e - p) * (b - q) / (f - q) + p) c = !c } return c };
-  const ID = new Int32Array(W * (NY + 1)).fill(-1), cells = [];
-  for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) if ([[i + .5, j + .5], [i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]].some(([a, b]) => inside(a * cw, b * ch))) cells.push([i, j]);
-  let n = 0; const GI = [], GJ = [];
-  cells.forEach(([i, j]) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]].forEach(([a, b]) => { if (ID[b * W + a] < 0) { ID[b * W + a] = n++; GI.push(a); GJ.push(b) } }));
-  const N2 = n * 2, P = new Float32Array(N2 * 3), Q = new Float32Array(N2 * 3), NP = new Float32Array(N2 * 3), hk = new Float32Array(n), SE = new Uint8Array(n);
-  const m4 = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(-.35, .3, .12)), v3 = new THREE.Vector3();
-  for (let k = 0; k < n; k++) {
-    const x1 = GI[k] * cw, y1 = GJ[k] * ch, din = inside(x1, y1) ? dPoly(x1, y1, POLY, true) : 0;
-    hk[k] = .05 + .3 * sm(0, 55, din); SE[k] = din < cw * 1.4 && dOpen(x1, y1) > cw * 2.4 ? 1 : 0;
-    for (let L = 0; L < 2; L++) {
-      v3.set((x1 - 200) * s, (L ? -1 : 1) * hk[k], (y1 - 220) * s).applyMatrix4(m4);
-      const o = (k + L * n) * 3; P[o] = v3.x; P[o + 1] = v3.y + 9; P[o + 2] = v3.z - 3;
-      Q[o] = P[o]; Q[o + 1] = P[o + 1] + 2 * DT; Q[o + 2] = P[o + 2] - 1.6 * DT;
+  const dPoly = (x, y, pl) => { let m = 1e9; for (let i = 0; i < pl.length; i++) m = Math.min(m, dSeg(x, y, pl[i], pl[(i + 1) % pl.length])); return m };
+
+  // ---------- Texturas: tejido de punto fino, estampado limpio ----------
+  const cv = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c };
+  const an = Math.min(8, R.capabilities.getMaxAnisotropy()), TWd = 1024, THd = 1126, K = TWd / 400;
+  function fabric(logo) {
+    const c = cv(TWd, THd), x = c.getContext("2d"), d = x.createImageData(TWd, THd), q = d.data;
+    for (let j = 0; j < THd; j++) for (let i = 0; i < TWd; i++) { const o = (j * TWd + i) * 4, v = 44 + Math.random() * 14 + (i % 3 ? 0 : 5) + (j % 2 ? 0 : 2); q[o] = q[o + 1] = v; q[o + 2] = v + 2; q[o + 3] = 255 }
+    x.putImageData(d, 0, 0);
+    if (logo) {
+      x.fillStyle = "rgba(236,231,219,.92)"; x.font = "600 46px Didot,'Bodoni MT',Georgia,serif"; x.textBaseline = "middle";
+      const ch = [..."ESTILOÚNICO"], sp = 11; let w = 0; ch.forEach(a => w += x.measureText(a).width + sp);
+      let px = TWd / 2 - w / 2 + sp / 2; ch.forEach(a => { x.fillText(a, px, 172 * K); px += x.measureText(a).width + sp });
     }
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = an; return t;
   }
-  const CA = [], CB = [], CL = [], CK = [];
-  const link = (i, j, a, b, k) => { if (a > NX || b > NY || b < 0) return; const p = ID[j * W + i], q = ID[b * W + a]; if (p < 0 || q < 0) return; const l = Math.hypot((a - i) * cw, (b - j) * ch) * s; for (let L = 0; L < 2; L++) { CA.push(p + L * n); CB.push(q + L * n); CL.push(l); CK.push(k) } };
-  for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) {
-    if (ID[j * W + i] < 0) continue;
-    link(i, j, i + 1, j, .5); link(i, j, i, j + 1, .5); link(i, j, i + 1, j + 1, .4); if (j > 0) link(i, j, i + 1, j - 1, .4); link(i, j, i + 2, j, .12); link(i, j, i, j + 2, .12);
-  }
-  for (let k = 0; k < n; k++) if (SE[k]) { CA.push(k); CB.push(k + n); CL.push(.03); CK.push(.5) }
-  const nb = (i, j, k) => (i < 0 || j < 0 || i > NX || j > NY || ID[j * W + i] < 0) ? k : ID[j * W + i];
+  const alpha = pl => { const c = cv(512, 563), a = c.getContext("2d"); a.fillStyle = "#000"; a.fillRect(0, 0, 512, 563); a.fillStyle = "#fff"; a.beginPath(); pl.forEach(([p, q], i) => a[i ? "lineTo" : "moveTo"](p * 1.28, q * 1.28)); a.fill(); return new THREE.CanvasTexture(c) };
 
-  const uv = new Float32Array(n * 2), idx = [], idr = [];
-  for (let k = 0; k < n; k++) { uv[k * 2] = GI[k] / NX; uv[k * 2 + 1] = 1 - GJ[k] / NY }
-  cells.forEach(([i, j]) => { const a = ID[j * W + i], b = ID[j * W + i + 1], c = ID[(j + 1) * W + i], d = ID[(j + 1) * W + i + 1]; idx.push(a, c, b, b, c, d); idr.push(a, b, c, b, d, c) });
-  const mk = r => { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.setIndex(r ? idr : idx); return g };
-  const gF = mk(0), gB = mk(1);
-  const mOut = new THREE.MeshStandardMaterial({ map, bumpMap: bump, bumpScale: .6, roughness: .92, alphaTest: .5, shadowSide: THREE.DoubleSide });
-  const mIn = new THREE.MeshStandardMaterial({ color: 0x1d1d21, bumpMap: bump, bumpScale: .5, roughness: 1, alphaMap: am, alphaTest: .5, side: THREE.BackSide });
-  const mBk = new THREE.MeshStandardMaterial({ color: 0x2c2c31, bumpMap: bump, bumpScale: .6, roughness: .95, alphaMap: am, alphaTest: .5, side: THREE.DoubleSide, shadowSide: THREE.DoubleSide });
-  const fo = new THREE.Mesh(gF, mOut), fi = new THREE.Mesh(gF, mIn), bk = new THREE.Mesh(gB, mBk);
-  [fo, fi, bk].forEach(o => { o.frustumCulled = false; sc.add(o) }); fo.castShadow = bk.castShadow = true;
-
-  // ---- Ribete del cuello (con grosor) ----
-  const NK = [];
-  for (let q = 0; q <= 12; q++) {
-    const ft = q / 12 * 4, a = Math.min(3, Math.floor(ft)), pa = OPEN[0][a], pb = OPEN[0][a + 1], u = ft - a, cx = pa[0] + (pb[0] - pa[0]) * u, cy = pa[1] + (pb[1] - pa[1]) * u;
-    let best = 0, bd = 1e9; for (let k = 0; k < n; k++) { const dd = Math.hypot(GI[k] * cw - cx, GJ[k] * ch - cy); if (dd < bd) { bd = dd; best = k } }
-    if (NK[NK.length - 1] !== best) NK.push(best);
+  // ---------- Malla: dos paneles con volumen ----------
+  const NX = 36, NY = 40, W = NX + 1, s = 5 / 400, cw = 400 / NX, ch = 440 / NY;
+  const cellsOf = pl => { const r = []; for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) if ([[i + .5, j + .5], [i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]].some(([a, b]) => ins(a * cw, b * ch, pl))) r.push([i, j]); return r };
+  const cF = cellsOf(POLY), cB = cellsOf(PB);
+  const ID = new Int32Array(W * (NY + 1)).fill(-1), GI = [], GJ = []; let n = 0;
+  cF.concat(cB).forEach(([i, j]) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]].forEach(([a, b]) => { if (ID[b * W + a] < 0) { ID[b * W + a] = n++; GI.push(a); GJ.push(b) } }));
+  const N2 = n * 2, F = new Float32Array(N2 * 3), Bl = new Float32Array(N2 * 3), P = new Float32Array(N2 * 3), WV = new Float32Array(n * 3), RK = new Float32Array(n), uv = new Float32Array(n * 2);
+  for (let k = 0; k < n; k++) {
+    const gx = GI[k] * cw, gy = GJ[k] * ch, x = (gx - 200) * s, y = -(gy - 220) * s;
+    const din = ins(gx, gy, POLY) ? dPoly(gx, gy, POLY) : (ins(gx, gy, PB) ? dPoly(gx, gy, PB) : 0), e = sm(0, 70, din);
+    const h = .03 + .24 * e, zf = .05 * e * (Math.sin(x * 3.1 + Math.sin(y * 1.3) * 1.7) * .6 + Math.sin(x * 7 + y * 1.1) * .25);
+    RK[k] = Math.min(1, Math.hypot(x, y) / 2.4);
+    const th = RK[k] * 2.75, ph = Math.atan2(y, x), dx = Math.sin(th) * Math.cos(ph), dy = Math.sin(th) * Math.sin(ph), dz = Math.cos(th);
+    const nz = Math.sin(dx * 4.1 + dy * 2.3 + 1.2) * Math.sin(dy * 3.7 - dz * 2.9) * .5 + Math.sin(dz * 6.3 + dx * 5.1) * .3 + Math.sin(dx * 9 + dy * 7.7 + dz * 8.3) * .15 + .06 * Math.sin(th * 9 + ph * 3);
+    for (let L = 0; L < 2; L++) {
+      const o = (k + L * n) * 3, rr = .9 * (1 + .2 * nz) * (L ? 1 - .18 * e : 1);
+      F[o] = x; F[o + 1] = y; F[o + 2] = L ? -h + zf * .6 : h + zf;
+      Bl[o] = dx * rr; Bl[o + 1] = dy * rr; Bl[o + 2] = dz * rr;
+    }
+    WV[k * 3] = Math.sin(x * 5 + y * 3.1 + 1) * .5; WV[k * 3 + 1] = Math.sin(y * 4.3 - x * 2.7) * .5; WV[k * 3 + 2] = Math.sin(x * 3.3 + y * 5.9 + 2) * .5;
+    uv[k * 2] = GI[k] / NX; uv[k * 2 + 1] = 1 - GJ[k] / NY;
   }
-  const m = NK.length, cp = new Float32Array(m * 21), ci = [];
-  for (let i = 0; i < m - 1; i++) for (let r = 0; r < 7; r++) { const a = i * 7 + r, b = i * 7 + (r + 1) % 7, c = (i + 1) * 7 + r, d = (i + 1) * 7 + (r + 1) % 7; ci.push(a, c, b, b, c, d) }
+  let minB = 1e9, minF = 1e9; for (let k = 0; k < N2; k++) { minB = Math.min(minB, Bl[k * 3 + 1]); minF = Math.min(minF, F[k * 3 + 1]) }
+  const mkG = (cl, r) => { const g = new THREE.BufferGeometry(), ix = []; cl.forEach(([i, j]) => { const a = ID[j * W + i], b = ID[j * W + i + 1], c = ID[(j + 1) * W + i], d = ID[(j + 1) * W + i + 1]; r ? ix.push(a, b, c, b, d, c) : ix.push(a, c, b, b, c, d) }); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.setIndex(ix); return g };
+  const gF = mkG(cF, 0), gB = mkG(cB, 1), aF = alpha(POLY), aB = alpha(PB);
+  const outF = new THREE.MeshStandardMaterial({ map: fabric(true), alphaMap: aF, alphaTest: .5, roughness: .95, shadowSide: THREE.DoubleSide });
+  const outB = new THREE.MeshStandardMaterial({ map: fabric(false), alphaMap: aB, alphaTest: .5, roughness: .95, shadowSide: THREE.DoubleSide });
+  const inn = a => new THREE.MeshStandardMaterial({ color: 0x151518, alphaMap: a, alphaTest: .5, roughness: 1, side: THREE.BackSide });
+  const G = new THREE.Group(); sc.add(G);
+  [[gF, outF], [gF, inn(aF)], [gB, outB], [gB, inn(aB)]].forEach(([g, m], i) => { const o = new THREE.Mesh(g, m); o.frustumCulled = false; o.castShadow = i % 2 === 0; G.add(o) });
+
+  // ---------- Cuello (ribete con grosor) ----------
+  const curve = new THREE.CatmullRomCurve3([[140,48],[152,72],[200,84],[248,72],[260,48]].map(([a, b]) => new THREE.Vector3(a, b, 0)));
+  const CS = curve.getPoints(18).map(v => { const i = Math.min(NX - 1, Math.floor(v.x / cw)), j = Math.min(NY - 1, Math.floor(v.y / ch)); return { id: [ID[j * W + i], ID[j * W + i + 1], ID[(j + 1) * W + i], ID[(j + 1) * W + i + 1]], w: [(1 - (v.x / cw - i)) * (1 - (v.y / ch - j)), (v.x / cw - i) * (1 - (v.y / ch - j)), (1 - (v.x / cw - i)) * (v.y / ch - j), (v.x / cw - i) * (v.y / ch - j)] } });
+  const cm = CS.length, cp = new Float32Array(cm * 18), ci = [];
+  for (let i = 0; i < cm - 1; i++) for (let r = 0; r < 6; r++) { const a = i * 6 + r, b = i * 6 + (r + 1) % 6, c = (i + 1) * 6 + r, d = (i + 1) * 6 + (r + 1) % 6; ci.push(a, c, b, b, c, d) }
   const gC = new THREE.BufferGeometry(); gC.setAttribute("position", new THREE.BufferAttribute(cp, 3)); gC.setIndex(ci);
-  const collar = new THREE.Mesh(gC, new THREE.MeshStandardMaterial({ color: 0x141417, roughness: 1, side: THREE.DoubleSide }));
-  collar.frustumCulled = false; collar.castShadow = true; sc.add(collar);
-  const cc = NK.map(() => new THREE.Vector3()), uu = new THREE.Vector3(), tt = new THREE.Vector3(), vv = new THREE.Vector3();
+  const collar = new THREE.Mesh(gC, new THREE.MeshStandardMaterial({ color: 0x17171a, roughness: 1, side: THREE.DoubleSide })); collar.frustumCulled = false; collar.castShadow = true; G.add(collar);
+  const pt = (c, L, o) => { o.set(0, 0, 0); c.id.forEach((id, q) => { const b = (Math.max(id, 0) + L * n) * 3; o.x += P[b] * c.w[q]; o.y += P[b + 1] * c.w[q]; o.z += P[b + 2] * c.w[q] }); return o };
+  const A1 = new THREE.Vector3(), A2 = new THREE.Vector3(), tt = new THREE.Vector3(), uu = new THREE.Vector3(), vv = new THREE.Vector3(), CC = CS.map(() => new THREE.Vector3()), UU = CS.map(() => new THREE.Vector3());
   function updCollar() {
-    NK.forEach((k, i) => { const a = k * 3, b = (k + n) * 3; cc[i].set((P[a] + P[b]) / 2, (P[a + 1] + P[b + 1]) / 2, (P[a + 2] + P[b + 2]) / 2) });
-    NK.forEach((k, i) => {
-      const a = k * 3, b = (k + n) * 3;
-      tt.subVectors(cc[Math.min(m - 1, i + 1)], cc[Math.max(0, i - 1)]).normalize();
-      uu.set(P[a] - P[b], P[a + 1] - P[b + 1], P[a + 2] - P[b + 2]); uu.addScaledVector(tt, -uu.dot(tt)).normalize(); vv.crossVectors(tt, uu);
-      for (let r = 0; r < 7; r++) { const g = r / 7 * 6.2832, o = (i * 7 + r) * 3, c1 = Math.cos(g) * .075, s1 = Math.sin(g) * .075; cp[o] = cc[i].x + uu.x * c1 + vv.x * s1; cp[o + 1] = cc[i].y + uu.y * c1 + vv.y * s1; cp[o + 2] = cc[i].z + uu.z * c1 + vv.z * s1 }
+    CS.forEach((c, i) => { pt(c, 0, A1); pt(c, 1, A2); CC[i].addVectors(A1, A2).multiplyScalar(.5); UU[i].subVectors(A1, A2); if (UU[i].length() < 1e-4) UU[i].set(0, 0, 1) });
+    CS.forEach((c, i) => {
+      tt.subVectors(CC[Math.min(cm - 1, i + 1)], CC[Math.max(0, i - 1)]).normalize();
+      uu.copy(UU[i]); uu.addScaledVector(tt, -uu.dot(tt)).normalize(); vv.crossVectors(tt, uu);
+      for (let r = 0; r < 6; r++) { const g = r / 6 * 6.2832, o = (i * 6 + r) * 3, c1 = Math.cos(g) * .06, s1 = Math.sin(g) * .06; cp[o] = CC[i].x + uu.x * c1 + vv.x * s1; cp[o + 1] = CC[i].y + uu.y * c1 + vv.y * s1; cp[o + 2] = CC[i].z + uu.z * c1 + vv.z * s1 }
     });
     gC.attributes.position.needsUpdate = true; gC.computeVertexNormals();
   }
 
-  // ---- Física ----
-  let t = 0, tl = 0;
-  function step() {
-    let sp = 0; const damp = tl ? .86 : .997;
-    for (let k = 0; k < N2; k++) {
-      const L = k >= n ? n : 0, kk = k - L, i = GI[kk], j = GJ[kk], o = k * 3, x0 = P[o], y0 = P[o + 1], z0 = P[o + 2];
-      const vx = (x0 - Q[o]) / DT, vy = (y0 - Q[o + 1]) / DT, vz = (z0 - Q[o + 2]) / DT; sp += Math.hypot(vx, vy, vz);
-      const r = (nb(i + 1, j, kk) + L) * 3, l = (nb(i - 1, j, kk) + L) * 3, d = (nb(i, j + 1, kk) + L) * 3, u = (nb(i, j - 1, kk) + L) * 3;
-      const tx = P[r] - P[l], ty = P[r + 1] - P[l + 1], tz = P[r + 2] - P[l + 2], ux = P[d] - P[u], uy = P[d + 1] - P[u + 1], uz = P[d + 2] - P[u + 2];
-      let nx = ty * uz - tz * uy, ny = tz * ux - tx * uz, nz = tx * uy - ty * ux; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
-      const vn = vx * nx + vy * ny + vz * nz;
-      NP[o] = x0 + (x0 - Q[o]) * damp + (-KD * vn * nx) * DT * DT;
-      NP[o + 1] = y0 + (y0 - Q[o + 1]) * damp + (-G - KD * vn * ny) * DT * DT;
-      NP[o + 2] = z0 + (z0 - Q[o + 2]) * damp + (-KD * vn * nz) * DT * DT;
-    }
-    Q.set(P); P.set(NP);
-    const air = 1 - .8 * sm(1.2, 3.6, t);   // el aire se va escapando y la prenda se aplana
-    for (let it = 0; it < 10; it++) {
-      for (let c = 0; c < CA.length; c++) {
-        const a = CA[c] * 3, b = CB[c] * 3, dx = P[b] - P[a], dy = P[b + 1] - P[a + 1], dz = P[b + 2] - P[a + 2];
-        const Lg = Math.hypot(dx, dy, dz) || 1e-6, f = (Lg - CL[c]) / Lg * CK[c];
-        P[a] += dx * f; P[a + 1] += dy * f; P[a + 2] += dz * f; P[b] -= dx * f; P[b + 1] -= dy * f; P[b + 2] -= dz * f;
+  // ---------- Deformación: aleteo, arrugado en bollo y desplegado ----------
+  function shape(m, fl, t) {
+    for (let k = 0; k < n; k++) {
+      const mk = sm(0, 1, m * 1.5 - .5 * RK[k]), ew = Math.sin(Math.PI * mk) * .5, a = fl * (1 - mk);
+      for (let L = 0; L < 2; L++) {
+        const o = (k + L * n) * 3, x = F[o], y = F[o + 1], z = F[o + 2];
+        P[o] = x + (Bl[o] - x) * mk + WV[k * 3] * ew;
+        P[o + 1] = y + (Bl[o + 1] - y) * mk + WV[k * 3 + 1] * ew + a * .22 * Math.abs(x) * (1 + .3 * Math.sin(t * 7 + x * 2));
+        P[o + 2] = z + (Bl[o + 2] - z) * mk + WV[k * 3 + 2] * ew + a * .1 * Math.sin(y * 4 + t * 9 + x * 3) * (.4 + .4 * Math.abs(x));
       }
-      for (let k = 0; k < n; k++) {   // frente y espalda no se pueden juntar: da volumen
-        if (SE[k]) continue;
-        const a = k * 3, b = (k + n) * 3, dx = P[b] - P[a], dy = P[b + 1] - P[a + 1], dz = P[b + 2] - P[a + 2];
-        const Lg = Math.hypot(dx, dy, dz) || 1e-6, want = Math.max(.07, 2 * hk[k] * air);
-        if (Lg < want) { const f = (Lg - want) / Lg * .5; P[a] += dx * f; P[a + 1] += dy * f; P[a + 2] += dz * f; P[b] -= dx * f; P[b + 1] -= dy * f; P[b + 2] -= dz * f }
-      }
-      for (let k = 0; k < N2; k++) if (P[k * 3 + 1] < .02) P[k * 3 + 1] = .02;
     }
-    for (let k = 0; k < N2; k++) { const o = k * 3; if (P[o + 1] < .03) { Q[o] = P[o] - (P[o] - Q[o]) * .55; Q[o + 2] = P[o + 2] - (P[o + 2] - Q[o + 2]) * .55; Q[o + 1] = P[o + 1] } }
-    return sp / N2;
   }
 
-  // ---- Cámara: se acerca al estampado y funde a negro ----
-  const chest = ID[Math.round(172 / 440 * NY) * W + NX / 2], d0 = new THREE.Vector3(0, .82, .57).normalize(), d1 = new THREE.Vector3(0, .96, .28).normalize();
-  const tg0 = new THREE.Vector3(0, 0, .3), tg1 = new THREE.Vector3(), p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
-  let acc = 0, last = performance.now();
+  // ---------- Guion de la animación (tiempos en segundos) ----------
+  const g = 14, y0 = 10.8, yH = 2.9, yF = -minF + .02, yB = -minB + .02;
+  const tI = Math.sqrt(2 * (y0 - yF) / g), tC = tI + .7, tJ = tC + .45, tL = tJ + .95, tZ = tL + .3;
+  const eo = u => 1 - Math.pow(1 - u, 3);
+  function pose(t) {
+    let m = 0, fl = 0, py = 0, ry = 0, rx = 0, rz = 0, sy = 1;
+    if (t < tI) { py = y0 - .5 * g * t * t; ry = .35 * Math.sin(t * 2.1) * (1 - t / tI); rz = .1 * Math.sin(t * 2.7 + 1); fl = Math.min(1, t / .4) }          // cae derecha
+    else if (t < tC) { const u = (t - tI) / .7; m = eo(u); py = yF + (yB - yF) * m; fl = (1 - u) * .8 }                                                  // se arruga en bollo
+    else if (t < tJ) { const q = t - tC; m = 1; sy = 1 + .09 * Math.exp(-q * 7) * Math.sin(q * 22) - .18 * sm(tJ - .25, tJ, t); py = -minB * sy + .02 }  // rebote y se agacha
+    else if (t < tL) { const u = (t - tJ) / .95; m = 1 - sm(.1, .85, u); py = yB + (yH - yB) * eo(u) + 3.2 * 4 * u * (1 - u); ry = Math.PI * 2 * (1 - Math.pow(1 - u, 2)); rx = .35 * Math.sin(Math.PI * u) * (1 - u); rz = .2 * Math.sin(2 * Math.PI * u); fl = .9 * sm(.3, .7, u) * (1 - sm(.85, 1, u)) } // salto y despliegue
+    else { const q = t - tL; py = yH + .05 * Math.sin(q * 2.2); ry = .04 * Math.sin(q * 1.3); fl = .12 * Math.exp(-q * 2) }                              // flota mostrando el logo
+    return { m, fl, py, ry, rx, rz, sy };
+  }
+
+  // ---------- Cámara: zoom al estampado hasta quedar en negro ----------
+  const tg0 = new THREE.Vector3(0, 2.7, 0), d0 = new THREE.Vector3(0, .16, 1).normalize(), d1 = new THREE.Vector3(0, .08, 1).normalize();
+  const tg1 = new THREE.Vector3(), p0 = new THREE.Vector3(), p1 = new THREE.Vector3(), cl = new THREE.Vector3(), CH = ID[Math.round(172 / ch) * W + NX / 2];
+  let t = 0, last = performance.now();
   function loop(now) {
-    if (hero.classList.contains("fin")) { R.dispose(); R.domElement.remove(); return }
+    if (hero.classList.contains("fin")) { vel.style.opacity = 1; R.dispose(); R.domElement.remove(); return }
     requestAnimationFrame(loop);
-    if (!hero.offsetParent) { last = now; return }
-    acc += Math.min(.05, (now - last) / 1000); last = now;
-    let c = 0, sp = 1;
-    while (acc >= DT && c++ < 2) { sp = step(); acc -= DT; t += DT; if (!tl && ((t > 1.5 && sp < .2) || t > 4)) tl = t }
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (!hero.offsetParent) return;
+    if (!document.body.classList.contains("lock")) t += dt;   // espera a que acepten el aviso de privacidad
+    const p = pose(t); shape(p.m, p.fl, t);
+    G.position.y = p.py; G.rotation.set(p.rx, p.ry, p.rz); G.scale.set(1 / Math.sqrt(p.sy), p.sy, 1 / Math.sqrt(p.sy)); G.updateMatrixWorld();
     gF.attributes.position.array.set(P.subarray(0, n * 3)); gB.attributes.position.array.set(P.subarray(n * 3));
     gF.attributes.position.needsUpdate = gB.attributes.position.needsUpdate = true; gF.computeVertexNormals(); gB.computeVertexNormals(); updCollar();
-    tg1.set(P[chest * 3], P[chest * 3 + 1], P[chest * 3 + 2]);
-    const e = tl ? sm(0, 1, (t - tl - .4) / 1.8) : 0;
+    const e = sm(0, 1, (t - tZ) / 1.7);
+    cl.set(P[CH * 3], P[CH * 3 + 1], P[CH * 3 + 2]); G.localToWorld(tg1.copy(cl));
     p0.copy(tg0).addScaledVector(d0, dS); p1.copy(tg1).addScaledVector(d1, dE);
     cam.position.lerpVectors(p0, p1, e); cam.lookAt(new THREE.Vector3().lerpVectors(tg0, tg1, e));
-    vel.style.opacity = tl ? sm(0, 1, (t - tl - 1.6) / .7) : 0;
-    if (tl && t > tl + 2.4) hero.classList.add("show");
+    vel.style.opacity = sm(0, 1, (t - tZ - 1.2) / .6);
+    if (t > tZ + 1.9) hero.classList.add("show");
+    if (t > tZ + 3.4) fin();
     R.render(sc, cam);
   }
   requestAnimationFrame(loop);
