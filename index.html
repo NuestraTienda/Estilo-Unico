@@ -1,259 +1,249 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EstiloÚnico</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
-
-    /* HEADER */
-    header { background: #fff; padding: 15px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
-    .header-top { display: flex; align-items: center; gap: 12px; }
-    .hamburger { width: 36px; height: 36px; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; }
-    .hamburger span { display: block; width: 22px; height: 2px; background: #333; border-radius: 2px; }
-    header h1 { font-size: 1.4rem; color: #222; flex: 1; cursor: pointer; }
-    .search-box { display: flex; align-items: center; background: #f0f0f0; border-radius: 20px; padding: 8px 14px; flex: 2; max-width: 300px; }
-    .search-box input { border: none; background: none; outline: none; font-size: 0.9rem; width: 100%; }
-    .search-box svg { width: 18px; height: 18px; margin-right: 8px; fill: #999; }
-
-    /* SIDEBAR */
-    .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: #fff; box-shadow: 2px 0 12px rgba(0,0,0,0.15); z-index: 200; transition: left 0.3s; padding: 20px; overflow-y: auto; }
-    .sidebar.abierto { left: 0; }
-    .sidebar h2 { font-size: 1.1rem; margin-bottom: 16px; }
-    .sidebar .seccion { margin-bottom: 20px; }
-    .sidebar .seccion h3 { font-size: 0.85rem; text-transform: uppercase; color: #888; margin-bottom: 8px; }
-    .sidebar .seccion button { display: block; width: 100%; text-align: left; padding: 10px 12px; border: none; background: none; cursor: pointer; font-size: 0.95rem; border-radius: 8px; }
-    .sidebar .seccion button:hover { background: #f0f0f0; }
-    .sidebar .seccion button.activo { background: #333; color: #fff; }
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
-    .overlay.visible { display: block; }
-    .cerrar-menu { position: absolute; top: 15px; right: 15px; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: #666; }
-
-    /* LOBBY: GRID DE CATEGORÍAS CON IMAGEN GRANDE */
-    .grid-categorias { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; padding: 20px; max-width: 1200px; margin: 0 auto; }
-    .cat-card { position: relative; border-radius: 14px; overflow: hidden; cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.1); transition: transform 0.2s; }
-    .cat-card:hover { transform: scale(1.03); }
-    .cat-card img { width: 100%; height: 280px; object-fit: cover; display: block; }
-    .cat-card .cat-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: #fff; padding: 30px 16px 14px; font-size: 1.1rem; font-weight: bold; }
-
-    /* BARRA DE CATEGORÍAS (dentro de una categoría) */
-    .barra-cat { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; max-width: 1200px; margin: 0 auto; }
-    .barra-cat button { padding: 7px 14px; border: 1px solid #ddd; background: #fff; border-radius: 20px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
-    .barra-cat button.activo { background: #333; color: #fff; border-color: #333; }
-    .btn-volver { padding: 10px 16px; border: none; background: #333; color: #fff; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin: 16px 20px 0; }
-
-    /* GRID DE PRODUCTOS */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
-    .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s; }
-    .card:hover { transform: translateY(-4px); }
-    .card img { width: 100%; height: 320px; object-fit: cover; }
-    .card-body { padding: 16px; }
-    .card-body .tag { font-size: 0.75rem; background: #eee; padding: 3px 8px; border-radius: 10px; display: inline-block; margin-bottom: 6px; }
-    .card-body h3 { font-size: 1rem; margin-bottom: 4px; }
-    .card-body .desc { font-size: 0.85rem; color: #666; margin-bottom: 10px; }
-    .card-body .precio { font-size: 1.2rem; font-weight: bold; color: #222; }
-    .card-body .talles { margin: 10px 0; }
-    .card-body .talles span { display: inline-block; padding: 4px 10px; margin: 2px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
-    .card-body .talles span.sel { background: #333; color: #fff; }
-    .btn-encargar { display: block; width: 100%; padding: 12px; background: #25D366; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; text-align: center; text-decoration: none; }
-    .btn-encargar:active { background: #1da851; }
-    .agotado { display: block; width: 100%; padding: 12px; background: #ccc; color: #888; border: none; border-radius: 8px; font-size: 1rem; margin-top: 10px; text-align: center; }
-    .sin-resultados { text-align: center; padding: 60px 20px; color: #999; font-size: 1.1rem; grid-column: 1 / -1; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EstiloÚnico · Ropa de diseño para mujer y hombre</title>
+<meta name="description" content="EstiloÚnico: ropa para mujer y hombre. Elegí tu prenda y pedila por WhatsApp.">
+<meta property="og:title" content="EstiloÚnico · Ropa"><meta property="og:description" content="Ropa para mujer y hombre. Pedí por WhatsApp.">
+<meta name="theme-color" content="#0b0b0c">
+<style>
+:root{--n:#0b0b0c;--o:#c9a24b;--m:#f4efe6;--az:#1f5eff;--g:#6f6a60;--b:#e2dccf}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Helvetica Neue",Arial,sans-serif;background:var(--m);color:var(--n);padding-bottom:70px}
+body.lock{overflow:hidden}
+button,input,select{font:inherit}button{cursor:pointer;border:0;background:none;color:inherit}
+header{position:sticky;top:0;z-index:20;background:var(--n);color:#fff;display:flex;align-items:center;gap:14px;padding:10px 16px}
+.logo{flex:1;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--o)}
+.ct{display:flex;flex-direction:column;align-items:flex-end;font-size:.78rem;line-height:1.4}.ct a{color:#fff;text-decoration:none}
+#burger{font-size:1.7rem;color:var(--o)}
+#menu{position:absolute;top:100%;left:0;right:0;background:var(--n);display:none;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}
+#menu.on{display:grid}
+#menu button,#menu a{background:#17171a;color:#fff;border:1px solid #2b2b30;border-radius:12px;padding:20px 8px;text-align:center;text-decoration:none;font-size:.9rem}
+.hero{height:100vh;min-height:520px;background:#050505;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.camisa{position:absolute;width:min(62vw,330px);transform-origin:50% 47%;animation:cae 1.6s cubic-bezier(.3,.7,.4,1) both,zoom 1.7s 1.9s ease-in forwards}
+@keyframes cae{from{transform:translateY(-120vh) rotate(-25deg)}to{transform:none}}
+@keyframes zoom{70%{opacity:1}to{transform:scale(22);opacity:0}}
+.final{text-align:center;color:var(--o);opacity:0;animation:ap 1s 3.3s forwards;padding:20px}
+.final h1{font-size:clamp(2.2rem,9vw,4.5rem);letter-spacing:.1em;text-transform:uppercase}.final p{color:#cfc7b4;margin:10px 0 26px}
+@keyframes ap{to{opacity:1}}
+.cta{display:inline-block;background:var(--az);color:#fff;text-decoration:none;font-weight:700;padding:16px 44px;border-radius:99px;font-size:1.1rem}
+@media(prefers-reduced-motion:reduce){.camisa{display:none}.final{animation:none;opacity:1}}
+main{max-width:1200px;margin:0 auto;padding:0 14px}
+.buscador{position:relative;padding:14px 0 6px}
+#q{width:100%;padding:13px 18px;border:1px solid var(--b);border-radius:99px;background:#fff;outline:none}
+#sug{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--b);border-radius:12px;z-index:5;overflow:hidden}
+#sug:empty{display:none}#sug button{display:block;width:100%;text-align:left;padding:11px 16px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:8px 0 12px}
+.chip{flex:none;padding:8px 16px;border:1px solid var(--b);background:#fff;border-radius:99px;font-size:.85rem}
+.chip.on,.talle.on{background:var(--n);color:var(--o);border-color:var(--n)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px;padding-bottom:30px}
+.card,.citem{position:relative;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;flex-direction:column}
+.citem{padding:14px;gap:8px;margin-bottom:10px}
+.foto{position:relative;aspect-ratio:4/5;background:#e8e2d6;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;color:var(--g);font-size:.85rem}
+.foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sk{background:linear-gradient(90deg,#e8e2d6 25%,#f6f1e7 50%,#e8e2d6 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}.ln{height:14px;border-radius:6px;margin:8px 0}
+.info{padding:10px 12px;flex:1}.info h3{font-size:.95rem;font-weight:500}.desc{font-size:.78rem;color:var(--g);margin-top:3px}
+.pre{font-size:1.25rem;font-weight:600}.pre s{font-size:.8rem;color:var(--g);font-weight:400;margin-left:6px}.pre em{font-style:normal;font-size:.8rem;color:#1a9a55;margin-left:6px}
+.fv{position:absolute;top:8px;right:8px;z-index:2;width:34px;height:34px;border-radius:50%;background:#fff;color:#bbb;font-size:1.1rem}.fv.on{color:#d33}
+.comprar{margin:0 12px 12px;padding:11px;border-radius:8px;background:var(--n);color:var(--o);font-weight:700}
+.sec{margin:0 12px 10px;padding:11px;border-radius:8px;border:1px solid var(--n)}
+.agot{margin:0 12px 12px;padding:11px;border-radius:8px;background:#e6e2dc;color:var(--g);text-align:center}
+.vacio{text-align:center;color:var(--g);padding:60px 0}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--n);display:flex;padding:6px 0}
+.tab{flex:1;color:#9d978a;font-size:.7rem;display:flex;flex-direction:column;align-items:center;gap:2px}.tab span{font-size:1.25rem}.tab.on{color:var(--o)}
+#detalle{position:fixed;inset:0;z-index:40;background:var(--m);overflow:auto;display:none}#detalle.on{display:block}
+.atras{padding:16px;font-weight:700}.dt{max-width:900px;margin:0 auto;display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));padding:0 16px 30px}
+.dd{display:flex;flex-direction:column;gap:10px}.dd .comprar,.dd .sec{margin:0}.dd ul{padding-left:18px;color:var(--g)}
+.talles{display:flex;flex-wrap:wrap;gap:8px;padding:3px;border-radius:8px}.talles.err{outline:2px solid #d33}
+.talle{padding:8px 14px;border:1px solid var(--b);background:#fff;border-radius:8px}
+.bg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:none;align-items:flex-end}.bg.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;margin:0 auto;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:20px;display:flex;flex-direction:column;gap:12px;animation:sube .25s}
+@keyframes sube{from{transform:translateY(100%)}}
+.sheet label{display:flex;flex-direction:column;gap:5px;font-size:.85rem;color:var(--g)}.sheet .chk{flex-direction:row;align-items:center;gap:8px}
+.sheet input:not([type=checkbox]),.sheet select{padding:11px;border:1px solid var(--b);border-radius:8px}
+.sheet .comprar,.sheet .sec{margin:0}.err{color:#d33;font-size:.85rem}.tot{font-weight:700}
+#legal,#bloq{z-index:70;align-items:center;justify-content:center}#legal .sheet{border-radius:16px;width:min(92vw,520px)}
+#bloq{background:#000;color:#fff;text-align:center;flex-direction:column;gap:16px;padding:20px}#bloq .comprar{background:var(--az);color:#fff;padding:14px 30px}
+#ck{position:fixed;left:10px;right:10px;bottom:76px;z-index:60;background:var(--n);color:#fff;border-radius:14px;padding:14px;display:none;gap:10px;flex-direction:column;font-size:.85rem}#ck.on{display:flex}
+#ck div{display:flex;gap:8px}#ck button{flex:1;padding:10px;border-radius:8px;background:var(--o);color:var(--n);font-weight:700}#ck button+button{background:#2b2b30;color:#fff}
+</style>
 </head>
 <body>
+<header>
+  <div class="logo">EstiloÚnico</div>
+  <div class="ct"><a id="ig" target="_blank" rel="noopener"></a><a id="tel" target="_blank" rel="noopener"></a></div>
+  <button id="burger" aria-label="Menú">☰</button>
+  <div id="menu"></div>
+</header>
 
-  <div class="overlay" id="overlay" onclick="cerrarSidebar()"></div>
+<section class="hero" id="hero">
+  <svg class="camisa" viewBox="0 0 200 200" aria-hidden="true"><path d="M70 20 L20 50 L38 85 L58 74 L58 180 L142 180 L142 74 L162 85 L180 50 L130 20 Q100 42 70 20Z" fill="#101010" stroke="#c9a24b" stroke-width="3"/><text x="100" y="98" text-anchor="middle" fill="#c9a24b" font-size="13" font-weight="800" letter-spacing="1">EstiloÚnico</text></svg>
+  <div class="final"><h1>EstiloÚnico</h1><p id="lema"></p><a class="cta" href="#catalogo">Ver prendas</a></div>
+</section>
 
-  <div class="sidebar" id="sidebar">
-    <button class="cerrar-menu" onclick="cerrarSidebar()">&times;</button>
-    <h2>Filtrar por talle</h2>
-    <div class="seccion">
-      <h3>Talle</h3>
-      <button data-filtro="talle" data-valor="todos" class="activo" onclick="setFiltroTalle('todos')">Todos</button>
-      <button data-filtro="talle" data-valor="XS" onclick="setFiltroTalle('XS')">XS</button>
-      <button data-filtro="talle" data-valor="S" onclick="setFiltroTalle('S')">S</button>
-      <button data-filtro="talle" data-valor="M" onclick="setFiltroTalle('M')">M</button>
-      <button data-filtro="talle" data-valor="L" onclick="setFiltroTalle('L')">L</button>
-      <button data-filtro="talle" data-valor="XL" onclick="setFiltroTalle('XL')">XL</button>
-      <button data-filtro="talle" data-valor="XXL" onclick="setFiltroTalle('XXL')">XXL</button>
-    </div>
+<main id="catalogo">
+  <div id="filtros">
+    <div class="buscador"><input id="q" type="search" placeholder="Buscar prenda..." autocomplete="off"><div id="sug"></div></div>
+    <div class="chips" id="chips"></div>
   </div>
+  <div id="grid" class="grid"></div>
+</main>
 
-  <header>
-    <div class="header-top">
-      <button class="hamburger" onclick="abrirSidebar()">
-        <span></span><span></span><span></span>
-      </button>
-      <h1 onclick="irInicio()">EstiloÚnico</h1>
-      <div class="search-box">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
-        <input type="text" id="buscador" placeholder="Buscar prenda..." oninput="render()">
-      </div>
-    </div>
-  </header>
+<nav class="tabbar">
+  <button class="tab on" data-v="inicio"><span>🏠</span>Inicio</button>
+  <button class="tab" data-v="buscar"><span>🔍</span>Buscador</button>
+  <button class="tab" data-v="favoritos"><span>♥</span>Favoritos</button>
+  <button class="tab" data-v="carrito"><span>🛒</span>Carrito</button>
+</nav>
 
-  <div id="contenido"></div>
+<div id="detalle"></div>
+<div id="sheet" class="bg"></div>
 
-  <script src="data.js"></script>
-  <script>
-    const WHATSAPP = "5493468542942";
-    let filtroCategoria = null;
-    let filtroGenero = null;
-    let filtroTalle = "todos";
+<!-- AVISO DE PRIVACIDAD (texto de ejemplo: hacelo revisar por un profesional antes de lanzar) -->
+<div id="legal" class="bg"><div class="sheet">
+  <h3>Aviso de privacidad</h3>
+  <p style="font-size:.9rem;line-height:1.5">Usamos los datos que nos des (nombre, domicilio, fecha y teléfono) únicamente para coordinar tu pedido por WhatsApp. No los vendemos ni los compartimos. Podés pedirnos que los borremos escribiéndonos. Para navegar necesitás aceptar este aviso.</p>
+  <button class="comprar" id="l-ok">Acepto</button><button class="sec" id="l-no">No acepto</button>
+</div></div>
+<div id="bloq" class="bg"><h2>Necesitás aceptar el aviso de privacidad para navegar</h2><button class="comprar" id="b-leer">Leer de nuevo y aceptar</button></div>
+<div id="ck"><span>Usamos cookies esenciales para que la tienda funcione y, si aceptás, cookies de análisis para mejorarla.</span><div><button id="c-ok">Aceptar todas</button><button id="c-min">Solo esenciales</button></div></div>
 
-    function abrirSidebar() {
-      document.getElementById("sidebar").classList.add("abierto");
-      document.getElementById("overlay").classList.add("visible");
-    }
-    function cerrarSidebar() {
-      document.getElementById("sidebar").classList.remove("abierto");
-      document.getElementById("overlay").classList.remove("visible");
-    }
-    function setFiltroTalle(valor) {
-      filtroTalle = valor;
-      document.querySelectorAll('[data-filtro="talle"]').forEach(b => b.classList.remove("activo"));
-      document.querySelector(`[data-filtro="talle"][data-valor="${valor}"]`).classList.add("activo");
-      render();
-    }
-    function irInicio() {
-      filtroCategoria = null;
-      filtroGenero = null;
-      filtroTalle = "todos";
-      document.getElementById("buscador").value = "";
-      document.querySelectorAll('[data-filtro="talle"]').forEach(b => b.classList.remove("activo"));
-      document.querySelector('[data-filtro="talle"][data-valor="todos"]').classList.add("activo");
-      render();
-    }
-    function abrirCategoria(genero, cat) {
-      filtroGenero = genero;
-      filtroCategoria = cat;
-      render();
-    }
+<script src="data.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => "$ " + Number(n).toLocaleString("es-AR");
+const img = s => (s && s[0] === "/" && s[1] !== "/") ? s.slice(1) : s;
+const ls = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
+const K = p => p.genero + "|" + p.nombre, byK = k => productos.find(p => K(p) === k);
+const pr = p => Math.round(p.precio * (1 - (p.descuento || 0) / 100));
+const precio = p => `<p class="pre">${fmt(pr(p))}${p.descuento ? `<s>${fmt(p.precio)}</s><em>${p.descuento}% OFF</em>` : ""}</p>`;
+let vista = "inicio", f = { g: "todos", c: "todas", q: "" }, fav = ls.get("fav", []), car = ls.get("car", []);
 
-    function render() {
-      const cont = document.getElementById("contenido");
-      cont.innerHTML = "";
-      const texto = document.getElementById("buscador").value.toLowerCase().trim();
+const foto = (p, c = "") => `<div class="foto sk ${c}" data-ver>${esc(p.nombre)}<img src="${esc(img(p.imagen))}" alt="${esc(p.nombre)}" loading="lazy" onload="this.parentNode.classList.remove('sk')" onerror="this.parentNode.classList.remove('sk');this.remove()"></div>`;
+const card = p => `<article class="card" data-k="${esc(K(p))}">
+  <button class="fv ${fav.includes(K(p)) ? "on" : ""}" data-fv aria-label="Favorito">♥</button>${foto(p)}
+  <div class="info" data-ver>${precio(p)}<h3>${esc(p.nombre)}</h3><p class="desc">${esc(p.descripcion)}</p></div>
+  ${p.disponible ? `<button class="comprar" data-comprar>Comprar</button>` : `<span class="agot">Agotado</span>`}</article>`;
+const esqueleto = () => $("#grid").innerHTML = Array(8).fill(`<div class="card"><div class="foto sk"></div><div class="info"><div class="ln sk"></div><div class="ln sk"></div></div></div>`).join("");
 
-      // === LOBBY: grid de categorías con imagen ===
-      if (filtroCategoria === null) {
-        let cats = categorias;
-        if (texto) {
-          cats = categorias.filter(c => {
-            const hayEnCat = c.nombre.toLowerCase().includes(texto);
-            const hayEnProd = productos.some(p => p.categoria === c.nombre && p.genero === c.genero &&
-              (p.nombre.toLowerCase().includes(texto) || p.descripcion.toLowerCase().includes(texto)));
-            return hayEnCat || hayEnProd;
-          });
-        }
+function render() {
+  $("#hero").style.display = vista === "inicio" ? "" : "none";
+  $("#filtros").style.display = (vista === "inicio" || vista === "buscar") ? "" : "none";
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.v === vista));
+  const cats = [...new Set(categorias.filter(c => f.g === "todos" || c.genero === f.g).map(c => c.nombre))];
+  $("#chips").innerHTML = [["g","todos","Todo"],["g","mujer","Mujer"],["g","hombre","Hombre"],...cats.map(c => ["c", c, c])]
+    .map(([k, v, l]) => `<button class="chip ${f[k] === v ? "on" : ""}" data-fk="${k}" data-v="${esc(v)}">${esc(l)}</button>`).join("");
+  const g = $("#grid");
+  if (vista === "carrito") {
+    g.className = "";
+    g.innerHTML = (car.map((c, i) => { const p = byK(c.k); return p ? `<div class="citem" data-k="${esc(c.k)}" data-t="${esc(c.t)}" data-i="${i}"><b>${esc(p.nombre)}</b><span>Talle ${esc(c.t)} · ${fmt(pr(p))}</span><button class="comprar" style="margin:0" data-comprar>Comprar</button><button class="sec" style="margin:0" data-quitar>Quitar</button></div>` : "" }).join("")) || `<p class="vacio">Tu carrito está vacío 🛒</p>`;
+    return;
+  }
+  g.className = "grid";
+  const l = productos.filter(p => vista === "favoritos" ? fav.includes(K(p)) :
+    (f.g === "todos" || p.genero === f.g) && (f.c === "todas" || p.categoria === f.c) &&
+    (!f.q || (p.nombre + " " + p.descripcion + " " + p.categoria).toLowerCase().includes(f.q))).reverse();
+  g.innerHTML = l.length ? l.map(card).join("") : `<p class="vacio" style="grid-column:1/-1">${vista === "favoritos" ? "Todavía no tenés favoritos ♥" : "No encontramos prendas 😕"}</p>`;
+}
 
-        const grid = document.createElement("div");
-        grid.className = "grid-categorias";
-        cats.forEach(c => {
-          const card = document.createElement("div");
-          card.className = "cat-card";
-          card.onclick = () => abrirCategoria(c.genero, c.nombre);
-          card.innerHTML = `
-            <img src="${c.imagen}" alt="${c.nombre}" loading="lazy">
-            <div class="cat-label">${c.nombre} · ${c.genero.charAt(0).toUpperCase() + c.genero.slice(1)}</div>
-          `;
-          grid.appendChild(card);
-        });
-        cont.appendChild(grid);
-        return;
-      }
+function detalle(p) {
+  $("#detalle").dataset.k = K(p);
+  $("#detalle").innerHTML = `<button class="atras" data-cerrar>← Volver</button><div class="dt">${foto(p)}<div class="dd">
+    ${precio(p)}<h2>${esc(p.nombre)}</h2><p>${esc(p.descripcion)}</p>
+    ${(p.detalles || []).length ? `<ul>${p.detalles.map(d => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
+    <b>Talles disponibles</b><div class="talles">${p.talles.map(t => `<button class="talle" data-t="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+    ${p.disponible ? `<button class="comprar" data-comprar>Comprar</button><button class="sec" data-car>Agregar al carrito</button>` : `<span class="agot" style="margin:0">Agotado</span>`}
+    <button class="sec" data-fv>${fav.includes(K(p)) ? "♥ En favoritos" : "♡ Agregar a favoritos"}</button></div></div>`;
+  $("#detalle").classList.add("on"); $("#detalle").scrollTop = 0;
+}
 
-      // === VISTA DE CATEGORÍA ===
-      const catsDelGenero = categorias.filter(c => c.genero === filtroGenero);
+function hoja(p, t) {
+  const hoy = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  $("#sheet").innerHTML = `<div class="sheet"><h3>${esc(p.nombre)}</h3>${precio(p)}
+    <label>Talle<select id="s-t"><option value="">Elegí...</option>${p.talles.map(x => `<option ${x === t ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></label>
+    <label>Método de pago<select id="s-p"><option>Efectivo</option><option>Tarjeta (se coordina por WhatsApp)</option></select></label>
+    <label class="chk"><input type="checkbox" id="s-e"> Quiero envío (+ ${fmt(CONFIG.envio)})</label>
+    <label id="s-dl" style="display:none">Domicilio<input id="s-d" placeholder="Calle, número, ciudad"></label>
+    <label>Fecha de entrega o retiro<input type="date" id="s-f" min="${hoy}"></label>
+    <p class="tot" id="s-tot"></p><p class="err" id="s-err"></p>
+    <button class="comprar" id="s-ok">Pedir por WhatsApp</button><button class="sec" data-cerrar-hoja>Cancelar</button></div>`;
+  const upd = () => { const e = $("#s-e").checked; $("#s-dl").style.display = e ? "" : "none"; $("#s-tot").textContent = "Total: " + fmt(pr(p) + (e ? CONFIG.envio : 0)); };
+  $("#s-e").onchange = upd; upd();
+  $("#s-ok").onclick = () => {
+    const t = $("#s-t").value, e = $("#s-e").checked, d = $("#s-d").value.trim(), fch = $("#s-f").value;
+    const er = !t ? "Elegí un talle" : (e && !d) ? "Escribí tu domicilio" : !fch ? "Elegí una fecha" : "";
+    $("#s-err").textContent = er; if (er) return;
+    const msg = `Hola! Quiero comprar:\n• ${p.nombre}\nTalle: ${t}\nPago: ${$("#s-p").value}\n${e ? "Envío a: " + d : "Retiro en el local"}\nFecha: ${fch.split("-").reverse().join("/")}\nTotal: ${fmt(pr(p) + (e ? CONFIG.envio : 0))}`;
+    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
+    $("#sheet").classList.remove("on");
+  };
+  $("#sheet").classList.add("on");
+}
 
-      // Barra superior con las categorías del género
-      const barra = document.createElement("div");
-      barra.className = "barra-cat";
-      catsDelGenero.forEach(c => {
-        const btn = document.createElement("button");
-        btn.textContent = c.nombre;
-        btn.className = filtroCategoria === c.nombre ? "activo" : "";
-        btn.onclick = () => { filtroCategoria = c.nombre; render(); };
-        barra.appendChild(btn);
-      });
-      cont.appendChild(barra);
+const guardar = () => { ls.set("fav", fav); ls.set("car", car); };
+const ir = v => { vista = v; $("#menu").classList.remove("on"); $("#detalle").classList.remove("on"); render(); scrollTo(0, v === "inicio" ? 0 : 0); if (v === "buscar") $("#q").focus(); };
 
-      // Botón volver
-      const btnVolver = document.createElement("button");
-      btnVolver.className = "btn-volver";
-      btnVolver.textContent = "← Volver al inicio";
-      btnVolver.onclick = irInicio;
-      cont.appendChild(btnVolver);
+document.addEventListener("click", e => {
+  const b = e.target.closest("button,[data-ver]"); 
+  if (!e.target.closest("#menu,#burger")) $("#menu").classList.remove("on");
+  if (!b) { if (!e.target.closest("#sug,#q")) $("#sug").innerHTML = ""; return; }
+  const d = b.dataset, root = b.closest("[data-k]") || $("#detalle.on"), p = root && root.dataset.k && byK(root.dataset.k);
+  if (d.v && b.classList.contains("tab") || d.v && b.closest("#menu")) return ir(d.v);
+  if (d.fk) { f[d.fk] = d.v; if (d.fk === "g") f.c = "todas"; return render(); }
+  if (d.sug !== undefined) { $("#q").value = f.q = d.sug.toLowerCase(); $("#sug").innerHTML = ""; return render(); }
+  if (b.id === "burger") return $("#menu").classList.toggle("on");
+  if (d.cerrar !== undefined) return $("#detalle").classList.remove("on");
+  if (d.cerrarHoja !== undefined) return $("#sheet").classList.remove("on");
+  if (!p) return;
+  if (d.fv !== undefined) {
+    const k = K(p); fav = fav.includes(k) ? fav.filter(x => x !== k) : [...fav, k]; guardar();
+    if (b.closest("#detalle")) b.textContent = fav.includes(k) ? "♥ En favoritos" : "♡ Agregar a favoritos"; else render(); return;
+  }
+  if (d.ver !== undefined) return detalle(p);
+  if (d.comprar !== undefined) { const s = $("#detalle.on .talle.on"); return hoja(p, root.dataset.t || (s && s.dataset.t) || ""); }
+  if (d.car !== undefined) {
+    const s = $("#detalle .talle.on"); if (!s) return $("#detalle .talles").classList.add("err");
+    car.push({ k: K(p), t: s.dataset.t }); guardar(); b.textContent = "✓ Agregado al carrito"; return;
+  }
+  if (d.quitar !== undefined) { car.splice(+root.dataset.i, 1); guardar(); return render(); }
+  if (b.classList.contains("talle")) { b.parentNode.querySelectorAll(".talle").forEach(x => x.classList.remove("on")); b.classList.add("on"); b.parentNode.classList.remove("err"); }
+});
 
-      // Grid de prendas
-      const visibles = productos.filter(p => {
-        if (p.genero !== filtroGenero) return false;
-        if (p.categoria !== filtroCategoria) return false;
-        if (filtroTalle !== "todos" && !p.talles.includes(filtroTalle)) return false;
-        if (texto) {
-          const hay = p.nombre.toLowerCase().includes(texto) || p.descripcion.toLowerCase().includes(texto);
-          if (!hay) return false;
-        }
-        return true;
-      });
+$("#q").oninput = e => {
+  f.q = e.target.value.toLowerCase().trim(); render();
+  const s = [...new Set(productos.flatMap(p => [p.nombre, p.categoria]))].filter(x => f.q && x.toLowerCase().includes(f.q) && x.toLowerCase() !== f.q).slice(0, 5);
+  $("#sug").innerHTML = s.map(x => `<button data-sug="${esc(x)}">${esc(x)}</button>`).join("");
+};
 
-      const grid = document.createElement("div");
-      grid.className = "grid";
+// Pull to refresh (solo celulares: usa eventos táctiles)
+let y0 = null;
+addEventListener("touchstart", e => { if (scrollY === 0 && !$("#detalle.on")) y0 = e.touches[0].clientY }, { passive: true });
+addEventListener("touchend", e => { if (y0 !== null && e.changedTouches[0].clientY - y0 > 90) { esqueleto(); setTimeout(() => location.reload(), 300) } y0 = null });
 
-      if (visibles.length === 0) {
-        grid.innerHTML = `<p class="sin-resultados">No se encontraron prendas 😕</p>`;
-      }
+// Aviso legal y cookies
+function analitica() {
+  if (!CONFIG.ga) return;
+  const s = document.createElement("script"); s.async = true; s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(CONFIG.ga); document.head.append(s);
+  window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments) }; gtag("js", new Date()); gtag("config", CONFIG.ga);
+}
+function cookies() { const c = ls.get("ck", null); if (c === null) $("#ck").classList.add("on"); else if (c === "all") analitica(); }
+const abrirLegal = () => { $("#legal").classList.add("on"); document.body.classList.add("lock"); };
+$("#l-ok").onclick = () => { ls.set("legal", true); $("#legal").classList.remove("on"); document.body.classList.remove("lock"); cookies(); };
+$("#l-no").onclick = () => { $("#legal").classList.remove("on"); $("#bloq").classList.add("on"); };
+$("#b-leer").onclick = () => { $("#bloq").classList.remove("on"); abrirLegal(); };
+$("#c-ok").onclick = () => { ls.set("ck", "all"); $("#ck").classList.remove("on"); analitica(); };
+$("#c-min").onclick = () => { ls.set("ck", "min"); $("#ck").classList.remove("on"); };
 
-      visibles.forEach((p) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${p.imagen}" alt="${p.nombre}" loading="lazy">
-          <div class="card-body">
-            <h3>${p.nombre}</h3>
-            <p class="desc">${p.descripcion}</p>
-            <p class="precio">$ ${p.precio.toLocaleString("es-AR")}</p>
-            <div class="talles">
-              ${p.talles.map(t => `<span data-talle="${t}">${t}</span>`).join("")}
-            </div>
-            ${p.disponible
-              ? `<a class="btn-encargar" href="#" onclick="encargar(${productos.indexOf(p)}, this)">📲 Encargar</a>`
-              : `<span class="agotado">Agotado</span>`
-            }
-          </div>`;
-        grid.appendChild(card);
-
-        card.querySelectorAll(".talles span").forEach(sp => {
-          sp.onclick = () => {
-            card.querySelectorAll(".talles span").forEach(s => s.classList.remove("sel"));
-            sp.classList.add("sel");
-          };
-        });
-      });
-      cont.appendChild(grid);
-    }
-
-    function encargar(idx, btn) {
-      const p = productos[idx];
-      const cont = btn.previousElementSibling;
-      const sel = cont.querySelector(".sel");
-      const talle = sel ? sel.textContent : "a definir";
-      const msg = `Hola! Quiero encargar:\n${p.nombre}\nTalle: ${talle}\nPrecio: $${p.precio.toLocaleString("es-AR")}`;
-      window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
-    }
-
- let categorias = [], productos = [];
-// Si la ruta empieza con "/", la hace relativa (así anda en GitHub Pages)
-const img = s => (s && s.startsWith("/") && !s.startsWith("//")) ? s.slice(1) : s;
-
-Promise.all([
-  fetch("categorias.json").then(r => r.json()),
-  fetch("productos.json").then(r => r.json())
-]).then(([c, p]) => { categorias = c; productos = p; render(); })
-  .catch(() => {
-    document.getElementById("contenido").innerHTML =
-      "<p class='sin-resultados'>No se pudieron cargar las prendas 😕</p>";
-  });
+// Inicio
+$("#lema").textContent = CONFIG.lema;
+$("#ig").textContent = "@" + CONFIG.instagram; $("#ig").href = "https://instagram.com/" + CONFIG.instagram;
+$("#tel").textContent = CONFIG.telefono; $("#tel").href = "https://wa.me/" + CONFIG.whatsapp;
+$("#menu").innerHTML = `<button data-v="carrito">🛒<br>Carrito</button><button data-v="favoritos">♥<br>Favoritos</button><a href="https://instagram.com/${esc(CONFIG.instagram)}" target="_blank" rel="noopener">📷<br>Instagram</a><a href="https://wa.me/${esc(CONFIG.whatsapp)}" target="_blank" rel="noopener">💬<br>WhatsApp</a>`;
+esqueleto(); setTimeout(render, 600);
+if (ls.get("legal", false)) cookies(); else abrirLegal();
+</script>
+</body>
+</html>
