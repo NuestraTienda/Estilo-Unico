@@ -40,6 +40,9 @@ main{max-width:1200px;margin:0 auto;padding:0 16px}
 .chip{flex:none;padding:6px 0;border-bottom:1px solid transparent;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g)}
 .chip.on{color:var(--n);border-color:var(--n)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:24px 14px;padding:6px 0 40px}
+@media (max-width:640px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px}
+}
 .card{position:relative;display:flex;flex-direction:column}
 .citem{border:1px solid var(--l);padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
 .foto{position:relative;aspect-ratio:4/5;background:#e7e3dc;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;color:var(--g);font-size:.8rem}
@@ -125,7 +128,7 @@ const img = s => (s && s[0] === "/" && s[1] !== "/") ? s.slice(1) : s;
 const ls = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
 const K = p => p.genero + "|" + p.nombre, byK = k => productos.find(p => K(p) === k);
 const pr = p => Math.round(p.precio * (1 - (p.descuento || 0) / 100));
-const precio = p => `<p class="pre">${fmt(pr(p))}${p.descuento ? `<s>${fmt(p.precio)}</s><em>${p.descuento}% OFF</em>` : ""}</p>`;
+const precio = p => `<p class="pre">${fmt(pr(p))}${p.descuento ? `<s>${fmt(p.precio)}</s><em>${p.descuento}% OFF</em` : ""}</p>`;
 const talles = p => p.talles.includes("XL") ? p.talles : [...p.talles, "XL"];
 const ENV = () => CONFIG.envioLocal ?? CONFIG.envio ?? 1000, KM = () => CONFIG.envioKm ?? 350;
 const costo = (m, km) => m === "local" ? ENV() : m === "fuera" ? KM() * Math.max(0, +km || 0) : 0;
@@ -137,7 +140,7 @@ const card = p => `<article class="card" data-k="${esc(K(p))}">
   <button class="fv ${fav.includes(K(p)) ? "on" : ""}" data-fv aria-label="Favorito">${HEART}</button>${foto(p)}
   <div class="info" data-ver>${precio(p)}<h3>${esc(p.nombre)}</h3><p class="desc">${esc(p.descripcion)}</p></div>
   ${p.disponible ? `<button class="comprar" data-comprar>Comprar</button>` : `<span class="agot">Agotado</span>`}</article>`;
-const esqueleto = () => $("#grid").innerHTML = Array(8).fill(`<div class="card"><div class="foto sk"></div><div class="info"><div class="ln sk"></div><div class="ln sk"></div></div></div>`).join("");
+const esqueleto = () => $("#grid").innerHTML = Array(8).fill`<div class="card"><div class="foto sk"></div><div class="info"><div class="ln sk"></div><div class="ln sk"></div></div></div>`).join("");
 
 function render() {
   $("#hero").style.display = vista === "inicio" ? "" : "none";
@@ -163,7 +166,7 @@ function detalle(p) {
   $("#detalle").dataset.k = K(p);
   $("#detalle").innerHTML = `<button class="atras" data-cerrar>← Volver</button><div class="dt">${foto(p)}<div class="dd">
     ${precio(p)}<h2>${esc(p.nombre)}</h2><p>${esc(p.descripcion)}</p>
-    ${(p.detalles || []).length ? `<ul>${p.detalles.map(d => `<li>${esc(d)}</li>`).join("")}</ul>` : ""}
+    ${(p.detalles || []).length ? `<ul>${p.detalles.map(d => `<li>${esc(d)}</li`).join("")}</ul>` : ""}
     <b>Talles disponibles</b><div class="talles">${talles(p).map(t => `<button class="talle" data-t="${esc(t)}">${esc(t)}</button>`).join("")}</div>
     ${p.disponible ? `<button class="comprar" data-comprar>Comprar</button><button class="sec" data-car>Agregar al carrito</button>` : `<span class="agot">Agotado</span>`}
     <button class="sec" data-fv>${fav.includes(K(p)) ? "En favoritos" : "Agregar a favoritos"}</button></div></div>`;
@@ -193,7 +196,7 @@ function hoja(p, t) {
     $("#s-err").textContent = er; if (er) return;
     const ent = m === "retiro" ? "Retiro en el local" : m === "local" ? "Envío en el pueblo a: " + d : `Envío fuera del pueblo (${km} km) a: ${d}`;
     const msg = `Hola! Quiero comprar:\n• ${p.nombre}\nTalle: ${t}\nPago: ${$("#s-p").value}\n${ent}\nFecha: ${fch.split("-").reverse().join("/")}\nTotal: ${fmt(pr(p) + costo(m, km))}`;
-    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
     $("#sheet").classList.remove("on");
   };
   $("#sheet").classList.add("on");
@@ -423,3 +426,4 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
 </script>
 </body>
 </html>
+```
