@@ -40,9 +40,6 @@ main{max-width:1200px;margin:0 auto;padding:0 16px}
 .chip{flex:none;padding:6px 0;border-bottom:1px solid transparent;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g)}
 .chip.on{color:var(--n);border-color:var(--n)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:24px 14px;padding:6px 0 40px}
-@media (max-width:640px){
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px}
-}
 .card{position:relative;display:flex;flex-direction:column}
 .citem{border:1px solid var(--l);padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
 .foto{position:relative;aspect-ratio:4/5;background:#e7e3dc;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;color:var(--g);font-size:.8rem}
@@ -426,4 +423,3 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
 </script>
 </body>
 </html>
-```
