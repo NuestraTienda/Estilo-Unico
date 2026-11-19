@@ -311,7 +311,7 @@ if (ls.get("legal", false)) cookies(); else abrirLegal();
     x.putImageData(d, 0, 0);
     if (logo) {
       x.fillStyle = "rgba(236,231,219,.92)"; x.font = "600 46px Didot,'Bodoni MT',Georgia,serif"; x.textBaseline = "middle";
-      const ch = [..."ESTILOÚNICO"], sp = 11; let w = 0; ch.forEach(a => w += x.measureText(a).width + sp);
+      const ch = [..."Vélora"], sp = 11; let w = 0; ch.forEach(a => w += x.measureText(a).width + sp);
       let px = TWd / 2 - w / 2 + sp / 2; ch.forEach(a => { x.fillText(a, px, 172 * K); px += x.measureText(a).width + sp });
     }
     const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = an; return t;
