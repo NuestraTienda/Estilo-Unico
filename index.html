@@ -10,6 +10,7 @@
 <style>
 :root{--n:#0c0c0e;--m:#f3f1ed;--l:#dedad2;--g:#7b766e;--az:#1b3a9e;--rd:#7a1f2b;--sf:Didot,"Bodoni MT","Playfair Display","Times New Roman",serif}
 *{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:var(--m);color:var(--n);padding-bottom:64px;-webkit-font-smoothing:antialiased}
 body.lock{overflow:hidden}
 button,input,select{font:inherit}button{cursor:pointer;border:0;background:none;color:inherit}
@@ -40,13 +41,14 @@ main{max-width:1200px;margin:0 auto;padding:0 16px}
 .chip{flex:none;padding:6px 0;border-bottom:1px solid transparent;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g)}
 .chip.on{color:var(--n);border-color:var(--n)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:24px 14px;padding:6px 0 40px}
-.card{position:relative;display:flex;flex-direction:column}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 10px}}
+.card{position:relative;display:flex;flex-direction:column;min-width:0}
 .citem{border:1px solid var(--l);padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
 .foto{position:relative;aspect-ratio:4/5;background:#e7e3dc;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;color:var(--g);font-size:.8rem}
 .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .sk{background:linear-gradient(90deg,#e7e3dc 25%,#f3f1ed 50%,#e7e3dc 75%);background-size:200% 100%;animation:sh 1.2s infinite}
 @keyframes sh{to{background-position:-200% 0}}.ln{height:12px;margin:8px 0}
-.info{padding:12px 2px 10px;flex:1}.info h3{font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em}
+.info{padding:12px 2px 10px;flex:1;min-width:0;overflow-wrap:anywhere}.info h3{font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em}
 .desc{font-size:.75rem;color:var(--g);margin-top:4px;line-height:1.4}
 .pre{font-size:1.05rem;font-weight:500;margin-bottom:4px}.pre s{font-size:.78rem;color:var(--g);font-weight:400;margin-left:8px}.pre em{font-style:normal;font-size:.7rem;letter-spacing:.1em;color:var(--rd);margin-left:8px}
 .fv{position:absolute;top:8px;right:8px;z-index:2;width:34px;height:34px;display:grid;place-items:center;background:rgba(243,241,237,.88)}.fv.on .i{fill:currentColor}
